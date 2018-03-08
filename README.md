@@ -1,6 +1,15 @@
 # Heteroscedastic ANN
 An ensemble method where each ANN is trained on a subset of the data. The prediction is based on each networks (weighted) predictions.
 
+OR
+
+An ensemble method in which a set of ANNs are trained on some subset of the data to approximate different functions. The problem with complex, 
+heteroscedastic data is that the function generating the data changes throughout time. That is, the statistical properties of the data generating
+function are non-constant. This approach essentially aims to train NNs to model each function as they cahange through time. A congregating method 
+such as another NN or k-nearest neighbors is used to get the predictions of future values. 
+
+In this case, each neural network will be in a dictionary which ties its statistical properties to itself (key=statistical properties, value=NNs).
+
 --------
 
 # Description
