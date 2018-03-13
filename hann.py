@@ -1,6 +1,36 @@
 from data_handler import *
 from errors import *
 from ann import *
+from lstm import *
+import numpy as np
+
+def chunk_data(data, n):
+    """
+        Splits data into n chunks, all evenly sized except (perhaps) the last one.
+    """
+    return [data[i:i+n] for i in range(0, len(data), n)]
+
+
+def calc_variance(data):
+    var = np.var(data, dtype=np.float64)
+    return var
+
+
+def train_networks(trainx, trainy):
+    """
+        Create and train the ensemble of neural networks.
+    """
+    networks = []
+    for i in range(len(trainx)):
+        x, y = trainx[i], trainy[i]
+
+        x = np.asarray(x)
+        x = x.reshape(x.shape[0], 1, 1)
+        print("Training network", i + 1, "out of", len(trainx), "...")
+        networks.append(MyLSTM(1, 15, [10 for _ in range(15)], 1, epochs=450,
+                            batch_size=100, fit_verbose=0))
+        networks[i].train(x, y)
+
 
 if __name__ == '__main__':
     dh = DataHandler('./data/Sunspots.csv')
@@ -8,14 +38,30 @@ if __name__ == '__main__':
 
     data = dh.tsdata.values
     x, y = data[:, 1], data[:, 3]
+    trainsize = 2000# int(len(data)*.66)
+    testsize = len(data) - trainsize
+    trainx, trainy = x[:trainsize], y[:trainsize]
+    testx, testy = x[trainsize:], y[trainsize:]
+    testx, testy = testx.tolist(), testy.tolist()
 
-    # ANN(self, input_size, num_hidden_layers, hidden_layer_sizes, output_size,
-    #                  epochs=50, batch_size=1, fit_verbose=2):
-    # model = ANN()
+    chunksize = int(trainsize/20)
+    trainx = chunk_data(trainx.tolist(), chunksize)
+    trainy = chunk_data(trainy.tolist(), chunksize)
+
+    train_networks(trainx, trainy)
+
+    histx, histy = [], []
+    for i in range(0, testsize):
+        xp, yp = testx[i], testy[i]
+        histx.append(xp)
+        histy.append(yp)
+        if len(histx) == chunksize:
+            # train new nn
+            histx, histy = [], []
 
     """
         TODO:
-            - beak data up into chunks (size? <- part of the problem)
+            - break data up into chunks (size? <- part of the problem)
                 - differing chunk sizes?
             - create ANN for each chunk of data
             - find statistical properties of each ANN's testing data (function we're trying to learn)
