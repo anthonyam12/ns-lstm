@@ -1,10 +1,10 @@
 from keras.models import Sequential
-from keras.layers import Dense, LSTM
+from keras.layers import Dense, LSTM, SimpleRNN
 
 
 class MyLSTM(object):
     def __init__(self, input_size, num_hidden_layers, hidden_layer_sizes, output_size,
-                 epochs=50, batch_size=1, fit_verbose=2):
+                 epochs=50, batch_size=1, fit_verbose=2, look_back=100):
         self.input_size = input_size
         self.num_hidden_layers = num_hidden_layers
         self.hidden_layer_sizes = hidden_layer_sizes
@@ -12,12 +12,13 @@ class MyLSTM(object):
         self.epochs = epochs
         self.batch_size = batch_size
         self.verbose = fit_verbose
+        self.look_back = look_back
 
         self.build_model()
 
     def build_model(self):
         self.model = Sequential()
-        self.model.add(LSTM(self.hidden_layer_sizes[0], input_shape=(None, self.input_size), return_sequences=True))
+        self.model.add(LSTM(self.hidden_layer_sizes[0], input_shape=(self.input_size, self.look_back), return_sequences=True))
         for i in range(1, self.num_hidden_layers - 1):
             self.model.add(LSTM(self.hidden_layer_sizes[i], return_sequences=True))
         self.model.add(LSTM(self.hidden_layer_sizes[len(self.hidden_layer_sizes) - 1]))

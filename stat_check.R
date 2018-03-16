@@ -40,5 +40,3 @@ rolling_variance <- function(data, chunk_size=100) {
     plot(rollapply(data, chunk_size, FUN=var))
 }
 
-
-# Iris dataset makes a good comparison for a constant statistical structure.
