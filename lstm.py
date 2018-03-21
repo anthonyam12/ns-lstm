@@ -1,5 +1,5 @@
 from keras.models import Sequential
-from keras.layers import Dense, LSTM, SimpleRNN
+from keras.layers import Dense, LSTM, SimpleRNN, Dropout
 
 
 class MyLSTM(object):
@@ -18,12 +18,17 @@ class MyLSTM(object):
 
     def build_model(self):
         self.model = Sequential()
-        self.model.add(LSTM(self.hidden_layer_sizes[0], input_shape=(self.input_size, self.variables), return_sequences=True))
+        self.model.add(LSTM(self.hidden_layer_sizes[0], input_shape=(self.input_size, self.variables),
+                            return_sequences=True))
+        # self.model.add(Dropout(0.2))
         for i in range(1, self.num_hidden_layers - 1):
             self.model.add(LSTM(self.hidden_layer_sizes[i], return_sequences=True))
+            # self.model.add(Dropout(0.2))
         self.model.add(LSTM(self.hidden_layer_sizes[len(self.hidden_layer_sizes) - 1]))
+        # self.model.add(Dropout(0.2))
         self.model.add(Dense(self.output_size))
         self.model.compile(loss='mean_squared_error', optimizer='adam')
+
 
     def predict(self, data):
         """
@@ -32,7 +37,7 @@ class MyLSTM(object):
 
              data - a matrix of data (explanatory variables) to be sent through the LSTM
         """
-        return self.model.predict(data)
+        return self.model.predict(data, batch_size=data.shape[1])
 
 
     def get_weights(self):

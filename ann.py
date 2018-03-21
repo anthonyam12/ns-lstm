@@ -4,7 +4,7 @@ from keras.layers import Dense, Activation
 
 class ANN(object):
     def __init__(self, input_size, num_hidden_layers, hidden_layer_sizes, output_size,
-                 epochs=50, batch_size=1, fit_verbose=2):
+                 epochs=50, batch_size=1, fit_verbose=2, variables=None):
         self.input_size = input_size
         self.num_hidden_layers = num_hidden_layers
         self.hidden_layer_sizes = hidden_layer_sizes

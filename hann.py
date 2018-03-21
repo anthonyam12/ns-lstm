@@ -37,8 +37,8 @@ def train_networks(trainx, trainy):
         x, y = trainx[i], trainy[i]
 
         print("Training network", i + 1, "out of", len(trainx), "...")
-        networks.append([MyLSTM(x.shape[1], 11, [30 for _ in range(15)], 1, epochs=850,
-                            batch_size=100, fit_verbose=0, variables=x.shape[2]),
+        networks.append([MyLSTM(x.shape[1], 5, [10 for _ in range(10)], 1, epochs=550,
+                            batch_size=200, fit_verbose=2, variables=x.shape[2]),
                             calc_variance(x)])
         networks[i][0].train(x, y)
     return networks
@@ -46,38 +46,37 @@ def train_networks(trainx, trainy):
 
 if __name__ == '__main__':
     trainsize = 2000
-    look_back = 100
-    num_chunks = 10
+    look_back = 300
+    num_chunks = 3
     chunk_size = int(trainsize / num_chunks)
 
     dh = DataHandler('./data/Sunspots.csv')
     dh.timeSeriesToSupervised()
 
-    data = dh.tsdata.values[:trainsize+look_back]
+    data = dh.tsdata.values
     x, y = data[:, 1], data[:, 3]
 
-    testsize = len(data) - trainsize
+    testsize = len(data) - (trainsize + look_back)
     trainx = x[:trainsize + look_back]
-    testx, testy = x[trainsize + look_back:], y[trainsize + look_back:]
-    testx, testy = testx.tolist(), testy.tolist()
+    testx, testy = x[(trainsize + 1):], y[(trainsize + 1):]
+    # testx, testy = testx.tolist(), testy.tolist()
 
     trainx, trainy = create_lookback_dataset(trainx, look_back)
     trainx = chunk_data(trainx, chunk_size)
     trainy = chunk_data(trainy, chunk_size)
     networks = train_networks(trainx, trainy)
 
-###!!!!!!!!!!!!!!!!!!!!!!!!!! BUILDING LSTMs WRONG!! need to have longer sequence as input to predict
+    testx, _ = create_lookback_dataset(testx, look_back)
     histx, histy = [], []
     predictions = []
+    # TODO: Different window now since lookback
     var_window = x[(trainsize-100):]
-    print(len(var_window))
-    prd = predict(np.asarray(testx[0], var_window).reshape(1, 1, 100))
-    for i in range(0, testsize):
+    for i in range(100, testsize):
         xp, yp = testx[i], testy[i]
         histx.append(xp)
         histy.append(yp)
-        xp = np.asarray(xp).reshape(1, 1, 1)
-        if len(histx) == chunksize:
+        xp = xp.reshape((1, xp.shape[0], xp.shape[1]))
+        if len(histx) == chunk_size:
             # train new nn
             histx, histy = [], []
         prediction = 0
@@ -85,7 +84,6 @@ if __name__ == '__main__':
             prediction += nn[0].predict(xp)
             print(prediction, yp)
 
-    print(len(var_window))
     print(mse(predictions, testy))
     """
         TODO:
