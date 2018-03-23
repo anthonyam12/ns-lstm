@@ -48,7 +48,7 @@ def train_networks(trainx, trainy):
 
 if __name__ == '__main__':
     trainsize = 2000
-    look_back = 1
+    look_back = 10
     num_chunks = 2
     chunk_size = int(trainsize / num_chunks)
 
@@ -58,21 +58,22 @@ if __name__ == '__main__':
     data = dh.tsdata.values
     x, y = data[:, 1], data[:, 3]
 
-    testsize = len(data) - (trainsize + look_back)
-    trainx = x[:trainsize + look_back]
-    testx, testy = x[(trainsize + look_back - 1):], y[(trainsize + look_back - 1):]
+    testsize = len(data) - trainsize
+    train = x[:trainsize + look_back]
+    test  = x[(trainsize - look_back + 1):]
 
-    trainx, trainy = create_lookback_dataset(trainx, look_back)
+    trainx, trainy = create_lookback_dataset(train, look_back)
     trainx = chunk_data(trainx, chunk_size)
     trainy = chunk_data(trainy, chunk_size)
     networks = train_networks(trainx, trainy)
 
-    testx, testy = create_lookback_dataset(testx, look_back)
+    testx, testy = create_lookback_dataset(test, look_back)
     histx, histy = [], []
     predictions = []
     # TODO: Different window now since lookback
     var_window = x[(trainsize-100):]
-    for i in range(testsize):
+    print(testsize, len(testx), len(testy), len(data), len(trainx))
+    for i in range(testsize-1):
         xp, yp = testx[i], testy[i]
         histx.append(xp)
         histy.append(yp)
