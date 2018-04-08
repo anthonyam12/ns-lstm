@@ -45,18 +45,10 @@ def train_networks(trainx, trainy, lookback):
 
         x, y = trainx[i], trainy[i]
         print("Training network", i + 1, "out of", len(trainx), "...")
-<<<<<<< HEAD
         lstm = MyLSTM(x.shape[1], 4, [27, 25, 3, 45], 1, epochs=1850,
                       batch_size=100, fit_verbose=2, variables=x.shape[2])
         lstm.train(x, y)
         ensemble.add_method(Method(lstm, x.mean(), x.var()))
-=======
-        networks.append([MyLSTM(x.shape[1], 4, [27, 25, 3, 45], 1, epochs=2150,
-                            batch_size=100, fit_verbose=2, variables=x.shape[2]),
-                            calc_variance(x)])
-        networks[i][0].train(x, y)
-    return networks
->>>>>>> 8e2b1f3d4592ea9fc2edfd03bf8291a52d3b6b6a
 
 
 if __name__ == '__main__':
@@ -64,13 +56,8 @@ if __name__ == '__main__':
     ensemble = Ensemble()
     colors = ['red', 'blue', 'green']
     trainsize = 2000
-<<<<<<< HEAD
     look_back = 1  # don't use lookback = 0!!! just use 1 (gives bad indices in test arrays)
     num_chunks = 2
-=======
-    look_back = 10
-    num_chunks = 10
->>>>>>> 8e2b1f3d4592ea9fc2edfd03bf8291a52d3b6b6a
     chunk_size = int(trainsize / num_chunks)
 
     dh = DataHandler('./data/Sunspots.csv')
