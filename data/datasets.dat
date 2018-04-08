@@ -1,6 +1,6 @@
 Datasets:
 	- EURUSD - foreign exchange rates
 	- Sunspots
-	- Unemployment data - general time series; no apparent preiodicity and only slight trend
+	- Unemployment data - general time series; no apparent periodicity and only slight trend
 	- Temperature data - strong seasonal component
 	- Mackey-Glass Equation output - deterministic chaos
