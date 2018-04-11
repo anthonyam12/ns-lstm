@@ -56,8 +56,11 @@ if __name__ == '__main__':
     ensemble = Ensemble()
     colors = ['red', 'blue', 'green']
     trainsize = 2000
+    base_size = 500
+    shift = trainsize - base_size
     look_back = 1  # don't use lookback = 0!!! just use 1 (gives bad indices in test arrays)
-    num_chunks = 2
+    num_chunks = 10
+    shift = int(shift/(num_chunks-1))
     chunk_size = int(trainsize / num_chunks)
 
     dh = DataHandler('./data/Sunspots.csv')
@@ -79,8 +82,12 @@ if __name__ == '__main__':
     test  = x[trainsize+1:]
 
     trainx, trainy = create_lookback_dataset(train, look_back)
-    trainx = chunk_data(trainx, chunk_size)
-    trainy = chunk_data(trainy, chunk_size)
+    # trainx = chunk_data(trainx, chunk_size)
+    # trainy = chunk_data(trainy, chunk_size)
+    # trainx = [trainx[(i*shift+look_back):(base_size + (i*shift)) + look_back] for i in range(num_chunks)]
+    # lookback does not work with sliding window right now
+    trainx = [trainx[(i*shift):(base_size + (i*shift))] for i in range(num_chunks)]
+    trainy = [trainy[(i*shift):(base_size + (i*shift))] for i in range(num_chunks)]
     train_networks(trainx, trainy, look_back)
 
     testx, testy = create_lookback_dataset(test, look_back, True)
@@ -104,6 +111,7 @@ if __name__ == '__main__':
         xp = xp.reshape((1, xp.shape[0], xp.shape[1]))
         if len(histx) == chunk_size:
             # train new nn
+            print(histx[0])
             histx, histy = [], []
         prediction = ensemble.get_prediction(xp, window.mean(), window.var())
         predictions.append(prediction.tolist())
