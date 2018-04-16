@@ -6,7 +6,7 @@ from lstm import *
 import numpy as np
 
 class Ensemble(object):
-    def __init__(self, train_style='overlap', num_segments=5, base_size=500,
+    def __init__(self, train_style='overlap', num_segments=5, base_size=-1,
                  trainsize=2000, lookback=1, k=-1, verbose=0):
         """
             train_style - defines how the data will be segmented for the ensemble methods
@@ -19,6 +19,9 @@ class Ensemble(object):
             k - kNN; number of nearest neighbors to use for prediction
             verbose - determine the level of output (0, 1, 2)
         """
+        if train_style != 'overlap' and base_size > 0:
+            print("Warning: base_size parameter ignored for training style...")
+
         self.methods = []
         self.train_style = train_style
         self.num_segments = num_segments
@@ -50,7 +53,7 @@ class Ensemble(object):
         """
         if window_size is None:
             window_size = self.segment_size
-        histx, histy = []
+        histx, histy = [], []
         predictions = []
         win_size = window_size
         for i in range(self.testsize - 1):
@@ -59,6 +62,8 @@ class Ensemble(object):
             xp, yp = self.testx[i], self.testy[i]
             histx.append(xp)
             histy.append(yp)
+            xp = xp.reshape((1, xp.shape[0], xp.shape[1]))
+            print("TARGET: ", yp)
             if adaptive and len(histx) == self.segment_size:
                 # train new network
                 histx, histy = [], []
@@ -80,7 +85,7 @@ class Ensemble(object):
         weights = []
         for method in self.methods:
             distance = method.get_distance(mean, variance)
-            weight = 1/(distance**2)
+            weight = 1/(distance)#**2)
             weights.append(weight)
             prediction += (method.get_prediction(x).reshape(1)*weight)
             print(method.get_prediction(x).reshape(1), method.variance, method.mean, variance, mean, distance, weight)
@@ -101,9 +106,11 @@ class Ensemble(object):
                    \tensemble.create_datasets()")
             exit()
 
+        sunspots_layers = [27, 25, 3, 45]
+        eur_usd_layers = [7, 16, 39, 9]
         for i in range(len(self.trainx)):
             x, y = self.trainx[i], self.trainy[i]
-            lstm = MyLSTM(x.shape[1], 4, [27, 25, 3, 45], 1, epochs=epochs,
+            lstm = MyLSTM(x.shape[1], 4, eur_usd_layers, 1, epochs=epochs,
                           batch_size=batch_size, fit_verbose=verbose,
                           variables=x.shape[2])
             self.methods.append(Method(lstm, x.mean(), x.var()))
