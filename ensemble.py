@@ -30,8 +30,10 @@ class Ensemble(object):
         self.look_back = lookback
          # only used for overlap training
         self.shift = int((self.trainsize - self.base_size)/(self.num_segments-1))
-        # used for sequential training
-        self.segment_size = int(self.trainsize/self.num_segments)
+        if train_style == 'overlap':
+            self.segment_size = base_size
+        elif train_style == 'sequential':
+            self.segment_size = int(self.trainsize/self.num_segments)
         self.k = k
         if k == -1:
             self.k = num_segments
@@ -53,20 +55,30 @@ class Ensemble(object):
         """
         if window_size is None:
             window_size = self.segment_size
-        histx, histy = [], []
+        if self.train_style == 'overlap':
+            histx = self.trainx[len(self.trainx)-1][-(self.segment_size - self.shift):].tolist()
+            histy = self.trainy[len(self.trainy)-1][-(self.segment_size - self.shift):].tolist()
+        else:
+            histx, histy = [], []
         predictions = []
         win_size = window_size
         for i in range(self.testsize - 1):
             idx = self.trainsize + self.look_back - win_size + i + 1
             window = self.x[idx:idx + win_size]
             xp, yp = self.testx[i], self.testy[i]
-            histx.append(xp)
             histy.append(yp)
+            histx.append(xp.tolist())
             xp = xp.reshape((1, xp.shape[0], xp.shape[1]))
             print("TARGET: ", yp)
             if adaptive and len(histx) == self.segment_size:
                 # train new network
-                histx, histy = [], []
+                self.train_or_load(np.asarray(histx), np.asarray(histy))
+                if self.train_style == 'overlap':
+                    histx = histx[-(self.segment_size - self.shift):]
+                    histy = histy[-(self.segment_size - self.shift):]
+                else:
+                    histx, histy = [], []
+                print("MSE:", mse(self.testy.tolist()[0:i], predictions))
             prediction = self.get_prediction(xp, window.mean(), window.var())
             predictions.append(prediction)
 
@@ -99,23 +111,31 @@ class Ensemble(object):
             includes the methods variance and mean so the data must be defined
             first.
         """
-        print()
         if not self.data_set:
             print("Must set data on ensemble before creating the methods.\n\
                    \tensemble.set_data_from_file(filename)\n\
                    \tensemble.create_datasets()")
             exit()
 
-        sunspots_layers = [27, 25, 3, 45]
-        eur_usd_layers = [7, 16, 39, 9]
+        self.epochs = epochs
+        self.batch_size = batch_size
+        self.verbose = verbose
+
         for i in range(len(self.trainx)):
             x, y = self.trainx[i], self.trainy[i]
-            lstm = MyLSTM(x.shape[1], 4, eur_usd_layers, 1, epochs=epochs,
-                          batch_size=batch_size, fit_verbose=verbose,
-                          variables=x.shape[2])
+            lstm = self.get_method(x)
             self.methods.append(Method(lstm, x.mean(), x.var()))
         return
 
+    def get_method(self, x):
+        """
+            Returns the method being used in the ensemble.
+        """
+        sunspots_layers = [27, 25, 3, 45]
+        eur_usd_layers = [7, 16, 39, 9]
+        return MyLSTM(x.shape[1], 4, eur_usd_layers, 1, epochs=self.epochs,
+                      batch_size=self.batch_size, fit_verbose=self.verbose,
+                      variables=x.shape[2])
 
     def create_datasets(self):
         """
@@ -164,12 +184,15 @@ class Ensemble(object):
         return
 
 
-    def train_or_load(self):
+    def train_or_load(self, x, y):
         """
             TODO: call from 'train_methods' -- check for files of weights, train
                   if they don't exist
         """
-        return
+        print("Training new ensemble method...")
+        lstm = self.get_method(x)
+        lstm.train(x, y)
+        self.methods.append(Method(lstm, x.mean(), x.var()))
 
 
     def set_data_from_file(self, filename):

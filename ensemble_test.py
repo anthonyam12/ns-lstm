@@ -5,6 +5,6 @@ if __name__ == '__main__':
                         trainsize=2000, num_segments=5)
     ensemble.set_data_from_file('./data/EURUSD.csv')
     ensemble.create_datasets()
-    ensemble.create_methods(batch_size=200, epochs=600)
+    ensemble.create_methods(batch_size=200, epochs=400, verbose=2)
     ensemble.train_methods()
-    print(ensemble.get_mse_from_predictions())
+    print(ensemble.get_mse_from_predictions(adaptive=True, window_size=400))
