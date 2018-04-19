@@ -7,7 +7,7 @@ import numpy as np
 
 class Ensemble(object):
     def __init__(self, train_style='overlap', num_segments=5, base_size=-1,
-                 trainsize=2000, lookback=1, k=-1, verbose=0):
+                 trainsize=2000, lookback=1, k=-1, verbose=0, load_train='t'):
         """
             train_style - defines how the data will be segmented for the ensemble methods
                          (sequential, overlap, random_segments)
@@ -39,6 +39,8 @@ class Ensemble(object):
             self.k = num_segments
         self.data_set = False
         self.verbose = verbose
+        self.load_train = load_train
+        self.params = None
 
         self.trainx = []
         self.trainy = []
@@ -105,7 +107,7 @@ class Ensemble(object):
         return prediction / sum(weights)
 
 
-    def create_methods(self, batch_size=100, verbose=2, epochs=1850):
+    def create_methods(self, batch_size=100, verbose=2, epochs=1850, params='s'):
         """
             Creates the methods that make up the ensemble. The method class
             includes the methods variance and mean so the data must be defined
@@ -120,22 +122,30 @@ class Ensemble(object):
         self.epochs = epochs
         self.batch_size = batch_size
         self.verbose = verbose
+        self.params = params
 
         for i in range(len(self.trainx)):
             x, y = self.trainx[i], self.trainy[i]
-            lstm = self.get_method(x)
+            lstm = self.get_method(x, params)
             self.methods.append(Method(lstm, x.mean(), x.var()))
         return
 
-    def get_method(self, x):
+    def get_method(self, x, params='s'):
         """
             Returns the method being used in the ensemble.
         """
-        sunspots_layers = [27, 25, 3, 45]
-        eur_usd_layers = [7, 16, 39, 9]
-        return MyLSTM(x.shape[1], 4, eur_usd_layers, 1, epochs=self.epochs,
-                      batch_size=self.batch_size, fit_verbose=self.verbose,
-                      variables=x.shape[2])
+        sunspots_params = [4, [27, 25, 3, 45]]
+        eur_usd_params = [4, [7, 16, 39, 9]]
+        mackey_params = [9, [28, 4, 36, 47, 2, 4, 5, 1, 37]]
+
+        param_set = sunspots_params
+        if params == 'e':
+            param_set = eur_usd_params
+        elif params == 'm':
+            param_set = mackey_params
+        return MyLSTM(x.shape[1], param_set[0], param_set[1], 1,
+                      epochs=self.epochs, batch_size=self.batch_size,
+                      fit_verbose=self.verbose, variables=x.shape[2])
 
     def create_datasets(self):
         """
@@ -177,10 +187,14 @@ class Ensemble(object):
             exit()
 
         for i in range(len(self.methods)):
-            print('Training method', i+1, 'out of', len(self.methods), '...')
             x, y = self.trainx[i], self.trainy[i]
             method = self.methods[i]
-            method.train(x, y)
+            if self.load_train == 'l':
+                print('Loading weights for method ', i+1, '...')
+                continue
+            else:
+                print('Training method', i+1, 'out of', len(self.methods), '...')
+                method.train(x, y)
         return
 
 
@@ -189,9 +203,14 @@ class Ensemble(object):
             TODO: call from 'train_methods' -- check for files of weights, train
                   if they don't exist
         """
-        print("Training new ensemble method...")
         lstm = self.get_method(x)
-        lstm.train(x, y)
+        if self.load_train == 'l':
+            print('Loading weights of new ensemble method...')
+            dummy = None
+        else:
+            print("Training new ensemble method...")
+            lstm.train(x, y)
+
         self.methods.append(Method(lstm, x.mean(), x.var()))
 
 
