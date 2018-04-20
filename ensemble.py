@@ -29,7 +29,10 @@ class Ensemble(object):
         self.trainsize = trainsize
         self.look_back = lookback
          # only used for overlap training
-        self.shift = int((self.trainsize - self.base_size)/(self.num_segments-1))
+        if num_segments > 1:
+            self.shift = int((self.trainsize - self.base_size)/(self.num_segments-1))
+        else:
+            self.shift = int((self.trainsize - self.base_size)/(self.num_segments))
         if train_style == 'overlap':
             self.segment_size = base_size
         elif train_style == 'sequential':
@@ -47,7 +50,7 @@ class Ensemble(object):
         self.testx = []
         self.testy = []
 
-    def get_mse_from_predictions(self, adaptive=True, window_size=None):
+    def get_predictions(self, adaptive=True, window_size=None):
         """
             Iterates the test data getting predictions for each timestep. Returns
             the MSE over all predictions.
@@ -57,11 +60,14 @@ class Ensemble(object):
         """
         if window_size is None:
             window_size = self.segment_size
-        if self.train_style == 'overlap':
-            histx = self.trainx[len(self.trainx)-1][-(self.segment_size - self.shift):].tolist()
-            histy = self.trainy[len(self.trainy)-1][-(self.segment_size - self.shift):].tolist()
-        else:
-            histx, histy = [], []
+
+        ## Trains way too many networks
+        # if self.train_style == 'overlap':
+        #     histx = self.trainx[len(self.trainx)-1][-(self.segment_size - self.shift):].tolist()
+        #     histy = self.trainy[len(self.trainy)-1][-(self.segment_size - self.shift):].tolist()
+        # else:
+        #     histx, histy = [], []
+        histx, histy = [], []
         predictions = []
         win_size = window_size
         for i in range(self.testsize - 1):
@@ -75,16 +81,17 @@ class Ensemble(object):
             if adaptive and len(histx) == self.segment_size:
                 # train new network
                 self.train_or_load(np.asarray(histx), np.asarray(histy))
-                if self.train_style == 'overlap':
-                    histx = histx[-(self.segment_size - self.shift):]
-                    histy = histy[-(self.segment_size - self.shift):]
-                else:
-                    histx, histy = [], []
+                histx, histy = [], []
+                # if self.train_style == 'overlap':
+                #     histx = histx[-(self.segment_size - self.shift):]
+                #     histy = histy[-(self.segment_size - self.shift):]
+                # else:
+                #     histx, histy = [], []
                 print("MSE:", mse(self.testy.tolist()[0:i], predictions))
             prediction = self.get_prediction(xp, window.mean(), window.var())
             predictions.append(prediction)
 
-        return mse(self.testy.tolist(), predictions)
+        return predictions
 
 
     def get_prediction(self, x, mean, variance):
@@ -99,7 +106,9 @@ class Ensemble(object):
         weights = []
         for method in self.methods:
             distance = method.get_distance(mean, variance)
-            weight = 1/(distance)#**2)
+            weight = .5
+            if distance != 0:
+                weight = 1/(distance)#**2)
             weights.append(weight)
             prediction += (method.get_prediction(x).reshape(1)*weight)
             print(method.get_prediction(x).reshape(1), method.variance, method.mean, variance, mean, distance, weight)
@@ -203,7 +212,7 @@ class Ensemble(object):
             TODO: call from 'train_methods' -- check for files of weights, train
                   if they don't exist
         """
-        lstm = self.get_method(x)
+        lstm = self.get_method(x, self.params)
         if self.load_train == 'l':
             print('Loading weights of new ensemble method...')
             dummy = None
