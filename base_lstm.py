@@ -26,7 +26,7 @@ if __name__ == '__main__':
     #               trainy.shape[1], epochs=981, fit_verbose=2,
     #               batch_size=100)
     lstm = MyLSTM(trainx.shape[1], 11, [32, 35, 41, 13, 32, 50, 34, 7, 38, 23, 50], 1,
-                  epochs=981, batch_size=200,
+                  epochs=981, batch_size=100,
                   fit_verbose=2, variables=trainx.shape[2])
     lstm.train(trainx, trainy)
     y_hat = lstm.predict(testx)
