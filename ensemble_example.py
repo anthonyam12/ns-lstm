@@ -5,17 +5,25 @@ if __name__ == '__main__':
     """
         Demonstrates standalone usage of the ensemble method.
     """
-    ensemble = Ensemble(train_style='overlap', base_size=400,
-                        trainsize=500, num_segments=5)
-    ensemble.set_data_from_file('./data/mackey.csv')
+    # create the ensemble
+    ensemble = Ensemble(train_style='overlap', base_size=1000,
+                        trainsize=2000, num_segments=5, dataset='e', load_train='t')
+
+    # load data and create datasets
+    ensemble.set_data_from_file('./data/Sunspots.csv')
     ensemble.create_datasets()
-    ensemble.create_methods(batch_size=100, epochs=900, verbose=2, params='m')
+
+    # Creates the methods, in this case Keras models
+    ensemble.create_methods(batch_size=200, epochs=700, verbose=2, params='e')
+
+    # trains or loads the model weights
     ensemble.train_methods()
+
+    # get predictions and calculate errors
     testy = ensemble.testy
     predictions = ensemble.get_predictions(adaptive=True)
     print("MSE: ", mse(testy.tolist(), predictions))
     print("MAE: ", mae(testy.tolist(), predictions))
 
-
-## TODO: Get plots of predicted vs actual for LSTM, ADLE, and ARIMA
-## TODO: Add to paper proof that data is nonstationayr (dickey fuller..)
+    # Save the weights to be used later
+    # ensemble.save_method_weights('./weights/eurusd/eurusd')

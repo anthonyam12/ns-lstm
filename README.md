@@ -9,12 +9,18 @@ such as another NN or k-nearest neighbors, is used to get the predictions of fut
 
 In this case, each neural network is a dictionary entry which ties its data segment's statistical properties to itself (key=statistical properties, value=NN).
 
+## The Paper
+
+The paper can be found in ./paper/ with name predicting-future-events.pdf, that is the full name and filepath is ./paper/predicting-future-events.pdf
 
 ## Usage
 
+### Example Datasets
+
+If wanting to run the ensemble standalone see **Standalone Ensemble** below. This example run allows a quick run of the example datasets.
+
 Running 'python adle.py' with no parameters will prompt the user for the required parameters. Otherwise
-the user can supply any number of parameters and the rest will be filled in manually. The required parameters
-are,
+the user can supply any number of parameters and the rest will be filled in manually. The required parameters are,
 
 + 'data' : Determines which dataset to use from the options (1=Sunspots, 2=EUR/USD Exchange Rate, 3=Mackey-Glass)
 + 'ensemble' : Takes one of the values ('t', 'l'). Setting this value to 't' will cause each
@@ -24,12 +30,31 @@ error rates (mean squared error).
 + 'benchmark' : Takes the values ('t', 'l'). Same as the 'ensemble' parameter but loads or trains the
 weights of the benchmark LSTM at runtime.
 
-Additionally, if invalid parameters are supplied via command line the user will be prompted to enter these
-manually. Parameters supplied that aren't listed above are ignored.
+Additionally, if invalid parameter values are supplied via command line the user will be prompted to enter these manually. Parameters supplied that aren't listed above are ignored.
+
+Examples:
+  + python3 adle.py data=1 ensemble=t run_bencmarks=y benchmark=l
+    + Runs ADLE on the Sunspots dataset while loading the model weights from ./weights/sunspots/* and ./weights/benchmarks/sunspots.h5
+  + python3 adle.py data=3
+    + Runs ADLE on the Mackey-Glass equation output. The user will be prompted to enter the other parameters.
+  + python3 adle.py data=2 run_bencmarks=n
+    + Runs ADLE on the EUR/USD forex dataset but does not create and compare the benchmark LSTM. The user will be prompted to input the 'ensemble' parameter.
 
 Does not run the ARIMA benchmark.
 
-## Requirements
+### Standalone Ensemble
+
+The file ensemble_example.py is an example of how to use the ensemble method standalone.
+
+This can be done with any univariate time series dataset where the first column is the time and the second column is the time series values.
+
+The code is fairly well documented which shows other potential parameters to the ensemble, but the most common parameters are demonstrated in the example file.
+
+### Datasets
+
+Because these datasets are univariate they tend to be small in terms of file size. Thus the datasets used for the NIPS report are included in the GitHub repositoty under ./data/
+
+### Requirements
 
 + Python 3.x (specifically tested with 3.6.1)
 + Python Libraries

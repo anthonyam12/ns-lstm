@@ -7,7 +7,8 @@ import numpy as np
 
 class Ensemble(object):
     def __init__(self, train_style='overlap', num_segments=5, base_size=-1,
-                 trainsize=2000, lookback=1, k=-1, verbose=0, load_train='t'):
+                 trainsize=2000, lookback=1, k=-1, verbose=0, load_train='t',
+                 dataset='s'):
         """
             train_style - defines how the data will be segmented for the ensemble methods
                          (sequential, overlap, random_segments)
@@ -18,6 +19,8 @@ class Ensemble(object):
             lookback - how many past data points to use as inputs. Usually 1 works best
             k - kNN; number of nearest neighbors to use for prediction
             verbose - determine the level of output (0, 1, 2)
+            load_train - 't' to train, 'l' to load
+            dataset - 's' for sunspot, 'm' for mackey-glass, 'e' for eurusd network params
         """
         if train_style != 'overlap' and base_size > 0:
             print("Warning: base_size parameter ignored for training style...")
@@ -44,6 +47,8 @@ class Ensemble(object):
         self.verbose = verbose
         self.load_train = load_train
         self.params = None
+        self.dataset = dataset
+        self.weight_file_count = 0
 
         self.trainx = []
         self.trainy = []
@@ -70,6 +75,7 @@ class Ensemble(object):
         histx, histy = [], []
         predictions = []
         win_size = window_size
+        print("Getting predictions, this may take some time...")
         for i in range(self.testsize - 1):
             idx = self.trainsize + self.look_back - win_size + i + 1
             window = self.x[idx:idx + win_size]
@@ -77,7 +83,7 @@ class Ensemble(object):
             histy.append(yp)
             histx.append(xp.tolist())
             xp = xp.reshape((1, xp.shape[0], xp.shape[1]))
-            print("TARGET: ", yp)
+            # print("TARGET: ", yp)
             if adaptive and len(histx) == self.segment_size:
                 # train new network
                 self.train_or_load(np.asarray(histx), np.asarray(histy))
@@ -87,7 +93,7 @@ class Ensemble(object):
                 #     histy = histy[-(self.segment_size - self.shift):]
                 # else:
                 #     histx, histy = [], []
-                print("MSE:", mse(self.testy.tolist()[0:i], predictions))
+                # print("MSE:", mse(self.testy.tolist()[0:i], predictions))
             prediction = self.get_prediction(xp, window.mean(), window.var())
             predictions.append(prediction)
 
@@ -111,8 +117,8 @@ class Ensemble(object):
                 weight = 1/(distance)#**2)
             weights.append(weight)
             prediction += (method.get_prediction(x).reshape(1)*weight)
-            print(method.get_prediction(x).reshape(1), method.variance, method.mean, variance, mean, distance, weight)
-        print('Prediction:', prediction/sum(weights))
+        #     print(method.get_prediction(x).reshape(1), method.variance, method.mean, variance, mean, distance, weight)
+        # print('Prediction:', prediction/sum(weights))
         return prediction / sum(weights)
 
 
@@ -197,10 +203,19 @@ class Ensemble(object):
 
         for i in range(len(self.methods)):
             x, y = self.trainx[i], self.trainy[i]
-            method = self.methods[i]
+            method = self.methods[i].network
             if self.load_train == 'l':
                 print('Loading weights for method ', i+1, '...')
-                continue
+                if self.dataset == 'm':
+                    method.load_model_weights('./weights/mackey/mackey' +
+                                            str(self.weight_file_count) + '.h5')
+                elif self.dataset == 'e':
+                    method.load_model_weights('./weights/eurusd/eurusd' +
+                                            str(self.weight_file_count) + '.h5')
+                else:
+                    method.load_model_weights('./weights/sunspots/sunspots' +
+                                            str(self.weight_file_count) + '.h5')
+                self.weight_file_count += 1
             else:
                 print('Training method', i+1, 'out of', len(self.methods), '...')
                 method.train(x, y)
@@ -209,13 +224,21 @@ class Ensemble(object):
 
     def train_or_load(self, x, y):
         """
-            TODO: call from 'train_methods' -- check for files of weights, train
-                  if they don't exist
+            Loads or trains a method based on the ensembles parameters.
         """
         lstm = self.get_method(x, self.params)
         if self.load_train == 'l':
             print('Loading weights of new ensemble method...')
-            dummy = None
+            if self.dataset == 'm':
+                lstm.load_model_weights('./weights/mackey/mackey' +
+                                        str(self.weight_file_count) + '.h5')
+            elif self.dataset == 'e':
+                lstm.load_model_weights('./weights/eurusd/eurusd' +
+                                        str(self.weight_file_count) + '.h5')
+            else:
+                lstm.load_model_weights('./weights/sunspots/sunspots' +
+                                        str(self.weight_file_count) + '.h5')
+            self.weight_file_count += 1
         else:
             print("Training new ensemble method...")
             lstm.train(x, y)
@@ -258,3 +281,13 @@ class Ensemble(object):
             datay.append(data[i + lookback])
         arr = np.asarray(datax)
         return arr.reshape(arr.shape[0], 1, arr.shape[1]), np.asarray(datay)
+
+
+    def save_method_weights(self, base_file_name):
+        """
+            Save the weights of all of the models in the ensemble.
+        """
+        for i in range(len(self.methods)):
+            method = self.methods[i].network
+            filename = base_file_name + str(i) + '.h5'
+            method.save_model_weights(filename)
