@@ -15,7 +15,7 @@ The paper can be found in ./paper/ with name predicting-future-events.pdf, that 
 
 ## Usage
 
-### Example Datasets
+### Easy Usage
 
 If wanting to run the ensemble standalone see **Standalone Ensemble** below. This example run allows a quick run of the example datasets.
 

@@ -98,6 +98,46 @@ def fill_params():
         control.set_ensemble_load(option)
 
 
+def run():
+    """
+        Runs the program per user specification.
+    """
+    global control
+    data_file = ''
+    dataset = ''
+    if control.dataset == 1:
+        data_file = './data/Sunspots.csv'
+        dataset = 's'
+    elif control.dataset == 2:
+        data_file = './data/EURUSD.csv'
+        dataset = 'e'
+    else:
+        data_file = './data/mackey.csv'
+        dataset = 'm'
+
+    # Run the ensemle
+    ensemble = None
+    # different datasets have different hyperparameters
+    adapt = True
+    if dataset == 's':
+        ensemble = Ensemble(train_style='overlap', num_segments=5,
+                            load_train=control.ensemble, )
+        adapt = False
+    elif dataset == 'e':
+        ensemble = ...
+    else:
+        ensemble = ...
+    ensemble.train_methods()
+    testy = ensemble.testy
+    predictions = ensemble.get_predictions(adaptive=adapt)
+
+    # Run the benchmark LSTM if need be
+
+    # Compare the errors of the ensemble and the LSTM
+    if control.run_benchmarks:
+        
+
+
 if __name__ == '__main__':
     """
         Main control for running ADLE.
@@ -106,3 +146,4 @@ if __name__ == '__main__':
     control = Control()
     parse_params(sys.argv)
     fill_params()
+    run()
