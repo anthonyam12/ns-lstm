@@ -121,21 +121,88 @@ def run():
     adapt = True
     if dataset == 's':
         ensemble = Ensemble(train_style='overlap', num_segments=5,
-                            load_train=control.ensemble, )
+                            load_train=control.ensemble, base_size=1000,
+                            trainsize=2000, dataset='s')
+        ensemble.set_data_from_file('./data/Sunspots.csv')
+        ensemble.create_datasets()
+        ensemble.create_methods(batch_size=100, epochs=1850, verbose=0, params='s')
         adapt = False
     elif dataset == 'e':
-        ensemble = ...
+        ensemble = Ensemble(train_style='overlap', num_segments=5,
+                            load_train=control.ensemle, base_size=1000,
+                            trainsize=2000, dataset='e')
+        ensemble.set_data_from_file('./data/EURUSD.csv')
+        ensemble.create_datasets()
+        ensemble.create_methods(batch_size=200, epochs=700, verbose=0, params='e')
     else:
-        ensemble = ...
+        ensemble = Ensemble(train_style='overlap', num_segments=5,
+                            load_train=control.ensemble, base_size=400,
+                            trainsize=500, dataset='m')
+        ensemble.set_data_from_file('./data/mackey.csv')
+        ensemble.create_datasets()
+        ensemble.create_methods(batch_size=100, epochs=900, verbose=0, params='m')
+
     ensemble.train_methods()
-    testy = ensemble.testy
-    predictions = ensemble.get_predictions(adaptive=adapt)
+    e_testy = ensemble.testy
+    e_predictions = ensemble.get_predictions(adaptive=adapt)
 
     # Run the benchmark LSTM if need be
+    dh = None
+    if control.run_benchmarks:
+        # Get the proper dataets loaded into the data handler
+        if dataset == 's':
+            dh = DataHandler('./data/Sunspots.csv')
+            dh.timeSeriesToSupervised()
+            dh.splitData(len(dh.tsdata) - 2000, 2000, 0)
+        elif dataset == 'e':
+            dh = DataHandler('./data/EURUSD.csv')
+            dh.timeSeriesToSupervised()
+            dh.splitData(len(dh.tsdata) - 2000, 2000, 0)
+        else:
+            dh = DataHandler('./data/mackey.csv')
+            dh.timeSeriesToSupervised()
+            dh.splitData(len(dh.tsdata) - 500, 500, 0)
+
+        # split and reshape the data
+        train, test, _ = dh.getDataSets()
+        trainx, trainy = train[:, 1], train[:, 3]
+        testx, testy = test[:, 1], test[:, 3]
+        trainy = trainy.reshape(trainy.shape[0], 1)
+        trainx = trainx.reshape(trainx.shape[0], 1)
+        testx = testx.reshape(testx.shape[0], 1)
+        trainx = trainx.reshape((trainx.shape[0], 1, trainx.shape[1]))
+        testx = testx.reshape((testx.shape[0], 1, testx.shape[1]))
+
+        # create the LSTMs and train or load the weights
+        lstm = None
+        weights_file = ''
+        if dataset == 's':
+            weights_file = './weights/benchmarks/sunspots.h5'
+        elif dataset == 'e':
+            weights_file = './weights/benchmarks/eurusd.h5'
+        else:
+            weights_file = './weights/benchmarks/mackey.h5'
+
+        if ensemble.get_benchmark_load() == 'l':
+            lstm.load_model_weights(weights_file)
+        else:
+            lstm.train(trainx, trainy)
+
+        b_predictions = lstm.predict(testx)
 
     # Compare the errors of the ensemble and the LSTM
-    if control.run_benchmarks:
-        
+    print('\n\n')
+    print('Ensemble MSE: ', mse(e_testy, e_predictions))
+    print('Ensemble MAE: ', mae(e_testy, e_predictions))
+    print('Ensemble SMAPE:', smape(e_testy, e_predictions))
+    print('\n\n')
+    if control.get_run_benchmark():
+        print('Benchmark MSE: ', mse(testy, b_predictions))
+        print('Benchmark MAE: ', mae(testy, b_predictions))
+        print('Benchmark SMAPE:', smape(testy, b_predictions))
+        print('\n\n')
+
+
 
 
 if __name__ == '__main__':
