@@ -118,6 +118,7 @@ def run():
     # Run the ensemle
     ensemble = None
     # different datasets have different hyperparameters
+    print("Running ensemble method...")
     adapt = True
     if dataset == 's':
         ensemble = Ensemble(train_style='overlap', num_segments=5,
@@ -129,7 +130,7 @@ def run():
         adapt = False
     elif dataset == 'e':
         ensemble = Ensemble(train_style='overlap', num_segments=5,
-                            load_train=control.ensemle, base_size=1000,
+                            load_train=control.ensemble, base_size=1000,
                             trainsize=2000, dataset='e')
         ensemble.set_data_from_file('./data/EURUSD.csv')
         ensemble.create_datasets()
@@ -148,7 +149,9 @@ def run():
 
     # Run the benchmark LSTM if need be
     dh = None
+    print(dataset)
     if control.run_benchmarks:
+        print("Running benchmark network...")
         # Get the proper dataets loaded into the data handler
         if dataset == 's':
             dh = DataHandler('./data/Sunspots.csv')
@@ -178,12 +181,21 @@ def run():
         weights_file = ''
         if dataset == 's':
             weights_file = './weights/benchmarks/sunspots.h5'
+            lstm = MyLSTM(trainx.shape[1], 11, [32, 35, 41, 13, 32, 50, 34, 7, 38, 23, 50], 1,
+                          epochs=750, batch_size=100,
+                          fit_verbose=0, variables=trainx.shape[2])
         elif dataset == 'e':
             weights_file = './weights/benchmarks/eurusd.h5'
+            lstm = MyLSTM(trainx.shape[1], 7, [8,38,46,31,49,14,14], 1,
+                          epochs=300, batch_size=200,
+                          fit_verbose=2, variables=trainx.shape[2])
         else:
             weights_file = './weights/benchmarks/mackey.h5'
+            lstm = MyLSTM(trainx.shape[1], 9, [28,4,36,47,2,4,5,1,37], 1,
+                          epochs=702, batch_size=100,
+                          fit_verbose=0, variables=trainx.shape[2])
 
-        if ensemble.get_benchmark_load() == 'l':
+        if control.get_benchmark_load() == 'l':
             lstm.load_model_weights(weights_file)
         else:
             lstm.train(trainx, trainy)
@@ -191,18 +203,16 @@ def run():
         b_predictions = lstm.predict(testx)
 
     # Compare the errors of the ensemble and the LSTM
-    print('\n\n')
+    print('\n')
     print('Ensemble MSE: ', mse(e_testy, e_predictions))
     print('Ensemble MAE: ', mae(e_testy, e_predictions))
     print('Ensemble SMAPE:', smape(e_testy, e_predictions))
-    print('\n\n')
+    print('\n')
     if control.get_run_benchmark():
         print('Benchmark MSE: ', mse(testy, b_predictions))
         print('Benchmark MAE: ', mae(testy, b_predictions))
         print('Benchmark SMAPE:', smape(testy, b_predictions))
-        print('\n\n')
-
-
+        print('\n')
 
 
 if __name__ == '__main__':

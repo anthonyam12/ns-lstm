@@ -67,6 +67,14 @@ Because these datasets are univariate they tend to be small in terms of file siz
   + h5py (loading and saving weights)
   + numpy
 
+### Project Structure
+
++ ./graphs, ./data_tools, ./old_proto - can essentially be ignored as they were used to create the paper, look at the datasets, and prototype the ensemble.
++ ./paper - contains everything needed for compiling the paper and a PDF copy
++ ./results - contains CSVs of the various parameters used for the ensemble on the three different datasets
++ ./weights - pretrained weights for the ensemble and base LSTM models
++ ./ - example usage of the ensemble and benchmark models
+
 
 ## Research Questions
 

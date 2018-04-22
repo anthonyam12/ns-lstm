@@ -7,7 +7,7 @@ run <- function(train, test) {
     for(i in 1:length(test)) {
         print(i)
         optim.control = list(maxit = 10000)
-        mdl <- arima(as.matrix(hist), c(3,1,1))
+        mdl <- arima(as.matrix(hist), c(1,0,2))
         predictions <- c(predictions, forecast(mdl, 1)$mean[[1]])
         hist <- c(hist, test[i])
         hist <- hist[-1]
@@ -19,5 +19,5 @@ run <- function(train, test) {
     mae <- mae/length(predictions)
     print(mse)
     print(mae)
-    
+    return(predictions)
 }

@@ -19,7 +19,7 @@ class Control(object):
         """
             Dataset selection setter.
         """
-        self.dataset = option
+        self.dataset = int(option)
 
     def get_dataset(self):
         """
