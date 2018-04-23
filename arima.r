@@ -4,9 +4,11 @@ run <- function(train, test) {
     hist <- train
     hist <- hist[-1]
     predictions <- c()
+	# iterate the test set and get predictions for each point
     for(i in 1:length(test)) {
         print(i)
         optim.control = list(maxit = 10000)
+		# refit the ARIMA model for each prediction
         mdl <- arima(as.matrix(hist), c(1,0,2))
         predictions <- c(predictions, forecast(mdl, 1)$mean[[1]])
         hist <- c(hist, test[i])

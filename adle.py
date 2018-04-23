@@ -1,3 +1,16 @@
+"""
+	An example run of ADLE in which the user can select to use 1 of the 3
+    test datasets, train or load the weights, and compare mse/mae with a 
+	benchmark LSTM network. 
+
+	Parameters are not required via command line but can be supplied based on 
+	the specifications in README.md. If parameters are not supplied the user 
+	will be prompt to input them. 
+
+	Author: Anthony Morast 
+	Date: 4/23/2018
+"""
+
 from data_handler import *
 from ensemble import *
 from lstm import *

@@ -1,3 +1,10 @@
+"""
+	An example of how to use the Ensemble class (ensemble.py) on any dataset.
+
+	Author: Anthony Morast
+	Date: 4/23/2018
+"""
+
 from ensemble import *
 from errors import *
 import matplotlib.pyplot as plt

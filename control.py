@@ -1,3 +1,10 @@
+"""
+	Holds parameters for the control of the example run of ADLE (adle.py).
+
+	Author: Anthony Morast
+	Date: 4/23/2018
+"""
+
 class Control(object):
     def __init__(self):
         """

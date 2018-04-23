@@ -1,3 +1,11 @@
+"""
+	This class was used to train single LSTM models to get benchmark
+	MSE and MAEs.
+
+	Author: Anthony Morast
+	Date: 4/23/2018
+"""
+
 from errors import *
 from data_handler import *
 from lstm import *

@@ -1,3 +1,10 @@
+"""
+	Handles data reading, writing, and splitting provided a csv or excel file.
+
+	Author: Anthony Morast
+	Date: 4/23/2018
+"""
+
 import pandas as pd
 
 
