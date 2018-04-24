@@ -162,7 +162,6 @@ def run():
 
     # Run the benchmark LSTM if need be
     dh = None
-    print(dataset)
     if control.run_benchmarks:
         print("Running benchmark network...")
         # Get the proper dataets loaded into the data handler
