@@ -102,3 +102,12 @@ Because these datasets are univariate they tend to be small in terms of file siz
 Below is a list of papers and other material relevant to this project/research.
 
 + Zhang, Xiru, and Jim Hutchinson. "Simple architectures on fast machines: practical issues in nonlinear time series prediction." (1994): 219-241. (Time series prediction, Sante Fe Institute book)
+
++ https://github.com/deepcharles/ruptures/blob/master/ruptures/detection/dynp.py
+  + Rupture is changepoint detection for Python (DynP = Segment Neighbors)
+
++ https://arxiv.org/pdf/1101.1438.pdf
+  + PELT algorithm 
+  
++ https://epublications.marquette.edu/cgi/viewcontent.cgi?referer=https://scholar.google.com/&httpsredir=1&article=1436&context=theses_open
+  + Uses an ensemble of different learners with weighted predictions from the ensemble
