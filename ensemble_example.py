@@ -19,7 +19,3 @@ if __name__ == '__main__':
     print("MSE: ", mse(testy.tolist(), predictions))
     print("MAE: ", mae(testy.tolist(), predictions))
     print("R^2: ", r_squared(testy, np.asarray(predictions)))
-
-
-## TODO: Get plots of predicted vs actual for LSTM, ADLE, and ARIMA
-## TODO: Add to paper proof that data is nonstationayr (dickey fuller..)

@@ -1,3 +1,11 @@
+"""
+	Holds the network (or other base method) used for the ensmeble as
+	well as the variance and mean of the dataset the method was trained over. 
+
+	Author: Anthony Morast
+	Date: 4/23/2018
+"""
+
 class Method(object):
     def __init__(self, network, mean, variance):
         self.network = network

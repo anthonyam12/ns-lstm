@@ -1,3 +1,10 @@
+"""
+	Used to generate the graphs depicting the different train styles for ADLE.
+
+	Author: Anthony Morast
+	Date: 4/23/2018
+"""
+
 from data_handler import *
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches

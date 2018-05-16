@@ -1,3 +1,10 @@
+"""
+	Holds parameters for the control of the example run of ADLE (adle.py).
+
+	Author: Anthony Morast
+	Date: 4/23/2018
+"""
+
 class Control(object):
     def __init__(self):
         """
@@ -19,7 +26,7 @@ class Control(object):
         """
             Dataset selection setter.
         """
-        self.dataset = option
+        self.dataset = int(option)
 
     def get_dataset(self):
         """
