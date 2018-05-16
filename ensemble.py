@@ -89,7 +89,7 @@ class Ensemble(object):
                 #     histx, histy = [], []
                 print("MSE:", mse(self.testy.tolist()[0:i], predictions))
             prediction = self.get_prediction(xp, window.mean(), window.var())
-            predictions.append(prediction)
+            predictions.append(prediction[0])
 
         return predictions
 

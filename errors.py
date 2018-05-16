@@ -70,3 +70,14 @@ def smape(y, y_hat):
         t = t + (abs(y_hat[i] - y[i]))/(abs(y[i]) + abs(y_hat[i]))
     t = t/n
     return t*100
+
+
+#####
+#   R^2 -- variation described by the model as a percentage of total variation
+#####
+def r_squared(y, y_hat):
+    y_bar = sum(y)/len(y)
+    print(y_bar)
+    t = sum((y_hat - y_bar)**2)
+    b = sum((y - y_bar)**2)
+    return t/b
