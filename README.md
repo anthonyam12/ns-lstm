@@ -1,5 +1,11 @@
 # Adaptive Deep LSTM Ensemble Method (ADLE)
 
+## Immediate TODO
+
++ Add `Aggregator` as an ensemble parameter. Define a base class with methods that an aggregator must have, aggregator instances, e.g. kNN, ANN, etc., will inherit this class to aggregate the ensemble's predictions
+
++ Add changepoint detection to get ensemble bounds (python rupture library (DynP and PELT))
+
 ## Overview
 
 An ensemble method in which a set of LSTM-RNNs are trained on some subset of the data to approximate different functions. The problem with complex,
